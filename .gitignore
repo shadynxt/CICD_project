@@ -67,4 +67,4 @@ UserInterfaceState.xcuserstate
 node_modules
 
 #.env
-dist
+#dist

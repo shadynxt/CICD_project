@@ -301,45 +301,45 @@ jobs:
       # Here's where you will add some code to rollback on failure      
 
 
-#   deploy-backend:
-#     docker:
-#       - image: python:3.7-alpine3.11
-#         environment:
-#           NODE_ENV: "production"
-#           VERSION: "1"
-#           ENVIRONMENT: "production"
-#           TYPEORM_CONNECTION: $TYPEORM_CONNECTION
-#           TYPEORM_HOST: $TYPEORM_HOST
-#           TYPEORM_USERNAME: $TYPEORM_USERNAME
-#           TYPEORM_PASSWORD: $TYPEORM_PASSWORD
-#           TYPEORM_DATABASE: $TYPEORM_DATABASE
-#           TYPEORM_PORT: $TYPEORM_PORT
-#           TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
-#     steps:
-#       - checkout
-#       - add_ssh_keys:
-#           fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
-#       - attach_workspace: 
-#           at: ~/
-#       - restore_cache:
-#           keys:
-#             - build-backend
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             apk add --update ansible nodejs npm tar gzip
-#       - run:
-#           name: Deploy backend
-#           command: |
-#             cd backend
-#             npm install
-#             npm run build
-#             cd ..
-#             tar -C backend -czvf artifact.tar.gz .
-#             cat ~/project/.circleci/ansible/inventory.txt
-#             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+        environment:
+          NODE_ENV: "production"
+          VERSION: "1"
+          ENVIRONMENT: "production"
+          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+          TYPEORM_HOST: $TYPEORM_HOST
+          TYPEORM_USERNAME: $TYPEORM_USERNAME
+          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+          TYPEORM_DATABASE: $TYPEORM_DATABASE
+          TYPEORM_PORT: $TYPEORM_PORT
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["61:42:e2:1d:ae:5d:2c:70:e0:c4:ca:10:f9:66:8d:3d"]
+      - attach_workspace: 
+          at: ~/
+      - restore_cache:
+          keys:
+            - build-backend
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible nodejs npm tar gzip
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cat ~/project/.circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
 
-#       # - destroy-environment:
+      - destroy-environment:
 
 #   smoke-test-backend:
 #     docker:
@@ -459,8 +459,8 @@ workflows:
            requires: [configure-infrastructure]
        - deploy-frontend:
            requires: [run-migrations]
-      #  - deploy-backend:
-      #      requires: [run-migrations]
+       - deploy-backend:
+           requires: [run-migrations]
       #  - smoke-test-backend:
       #      requires: [deploy-backend]
       #  - smoke-test-frontend:

@@ -185,8 +185,6 @@ jobs:
             --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query "Stacks[0].Outputs[0].OutputValue" \
             --output text >> .circleci/ansible/inventory.txt \
-            echo " " >> inventory.txt
-            echo "$(aws ec2 describe-instances --filters "Name=tag:aws:cloudformation:logical-id,Values=EC2Instance" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)" >> inventory.txt  
             cat inventory.txt
 
       - persist_to_workspace:

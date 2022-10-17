@@ -3,6 +3,9 @@
 - name: "configuration play." 
   hosts: web
   user: ubuntu
+  become: true
+  become_method: sudo
+  become_user: root 
   gather_facts: false
   vars:
     - ansible_python_interpreter: /usr/bin/python3
@@ -20,7 +23,5 @@
     TYPEORM_PORT: "{{ lookup('env','TYPEORM_PORT') }}"
     TYPEORM_ENTITIES: "{{ lookup('env','TYPEORM_ENTITIES') }}"
   roles:
-    - deploy
-  remote_user: ubuntu
-  sudo: yes  
+    - deploy 
 

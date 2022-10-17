@@ -23,5 +23,7 @@
     TYPEORM_PORT: "{{ lookup('env','TYPEORM_PORT') }}"
     TYPEORM_ENTITIES: "{{ lookup('env','TYPEORM_ENTITIES') }}"
   roles:
-    - deploy 
+    - deploy
+  remote_user: ubuntu
+  sudo: yes  
 

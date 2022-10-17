@@ -21,6 +21,4 @@
     TYPEORM_ENTITIES: "{{ lookup('env','TYPEORM_ENTITIES') }}"
   roles:
     - deploy
-  remote_user: ubuntu
-  sudo: yes  
 

@@ -303,61 +303,33 @@ jobs:
       # Here's where you will add some code to rollback on failure      
 
 
-  # deploy-backend:
-  #   docker:
-  #     - image: python:3.7-alpine3.11
-  #       environment:
-  #         NODE_ENV: "production"
-  #         VERSION: "1"
-  #         ENVIRONMENT: "production"
-  #         TYPEORM_CONNECTION: $TYPEORM_CONNECTION
-  #         TYPEORM_HOST: $TYPEORM_HOST
-  #         TYPEORM_USERNAME: $TYPEORM_USERNAME
-  #         TYPEORM_PASSWORD: $TYPEORM_PASSWORD
-  #         TYPEORM_DATABASE: $TYPEORM_DATABASE
-  #         TYPEORM_PORT: $TYPEORM_PORT
-  #         TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #         fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
-  #     - attach_workspace: 
-  #         at: ~/
-  #     - restore_cache:
-  #         keys:
-  #           - build-backend
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update ansible nodejs npm tar gzip
-  #     - run:
-  #         name: Deploy backend
-  #         command: |
-  #           cd backend
-  #           npm install
-  #           npm run build
-  #           cd ..
-  #           tar -C backend -czvf artifact.tar.gz .
-  #           cat ~/project/.circleci/ansible/inventory.txt
-  #           ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-
-  #     # - destroy-environment:
-
   deploy-backend:
     docker:
-      - image: python:3.9-alpine3.16
+      - image: python:3.7-alpine3.11
+        environment:
+          NODE_ENV: "production"
+          VERSION: "1"
+          ENVIRONMENT: "production"
+          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+          TYPEORM_HOST: $TYPEORM_HOST
+          TYPEORM_USERNAME: $TYPEORM_USERNAME
+          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+          TYPEORM_DATABASE: $TYPEORM_DATABASE
+          TYPEORM_PORT: $TYPEORM_PORT
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
-      - attach_workspace:
+      - attach_workspace: 
           at: ~/
+      - restore_cache:
+          keys:
+            - build-backend
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible nodejs npm openssh-client tar gzip
-      - restore_cache:
-          keys: ["build-backend"]  # -<< pipeline.id >>
       - run:
           name: Deploy backend
           command: |
@@ -367,20 +339,48 @@ jobs:
             cd ..
             tar -C backend -czvf artifact.tar.gz .
             cat ~/project/.circleci/ansible/inventory.txt
-      - run:
-          name: Deploy backend 2
-          command: |
-            export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-             # export ANSIBLE_HOST_KEY_CHECKING=False
-             # ansible-playbook \
-             #   -i .circleci/ansible/inventory.txt \
-             #   .circleci/ansible/deploy-backend.yml
-      - run:
-          name: Install AWS CLI for rollback
-          when: on_fail
-          command:
-            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
+
+      # - destroy-environment:
+
+  # deploy-backend:
+  #   docker:
+  #     - image: python:3.9-alpine3.16
+  #   steps:
+  #     - checkout
+  #     - add_ssh_keys:
+  #         fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
+  #     - attach_workspace:
+  #         at: ~/
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           apk add --update ansible nodejs npm openssh-client tar gzip
+  #     - restore_cache:
+  #         keys: ["build-backend"]  # -<< pipeline.id >>
+  #     - run:
+  #         name: Deploy backend
+  #         command: |
+  #           cd backend
+  #           npm install
+  #           npm run build
+  #           cd ..
+  #           tar -C backend -czvf artifact.tar.gz .
+  #           cat ~/project/.circleci/ansible/inventory.txt
+  #     - run:
+  #         name: Deploy backend 2
+  #         command: |
+  #           export ANSIBLE_HOST_KEY_CHECKING=False
+  #           ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+  #            # export ANSIBLE_HOST_KEY_CHECKING=False
+  #            # ansible-playbook \
+  #            #   -i .circleci/ansible/inventory.txt \
+  #            #   .circleci/ansible/deploy-backend.yml
+  #     - run:
+  #         name: Install AWS CLI for rollback
+  #         when: on_fail
+  #         command:
+  #           apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
 
 #   smoke-test-backend:
 #     docker:

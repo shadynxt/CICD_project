@@ -305,7 +305,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.9-alpine3.16
         environment:
           NODE_ENV: "production"
           VERSION: "1"
@@ -329,7 +329,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible nodejs npm openssh-client tar gzip
+            apk add --update ansible nodejs npm tar gzip
       - run:
           name: Deploy backend
           command: |

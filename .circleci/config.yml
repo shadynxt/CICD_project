@@ -237,8 +237,8 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-       run:
-        name: Ensure back-end infrastructure exists
+      - run:
+          name: Ensure back-end infrastructure exists
           command: |
             aws --region us-east-1 cloudformation deploy \
               --template-file .circleci/files/backend.yml \

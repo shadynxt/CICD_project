@@ -355,7 +355,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible openssh-client tar gzip
+            apk add --update ansible nodejs npm openssh-client tar gzip
       - restore_cache:
           keys: ["build-backend"]  # -<< pipeline.id >>
       - run:
@@ -371,10 +371,10 @@ jobs:
           name: Deploy backend 2
           command: |
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-            # export ANSIBLE_HOST_KEY_CHECKING=False
-            # ansible-playbook \
-            #   -i .circleci/ansible/inventory.txt \
-            #   .circleci/ansible/deploy-backend.yml
+             # export ANSIBLE_HOST_KEY_CHECKING=False
+             # ansible-playbook \
+             #   -i .circleci/ansible/inventory.txt \
+             #   .circleci/ansible/deploy-backend.yml
       - run:
           name: Install AWS CLI for rollback
           when: on_fail

@@ -303,46 +303,76 @@ jobs:
       # Here's where you will add some code to rollback on failure      
 
 
+  # deploy-backend:
+  #   docker:
+  #     - image: python:3.7-alpine3.11
+  #       environment:
+  #         NODE_ENV: "production"
+  #         VERSION: "1"
+  #         ENVIRONMENT: "production"
+  #         TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+  #         TYPEORM_HOST: $TYPEORM_HOST
+  #         TYPEORM_USERNAME: $TYPEORM_USERNAME
+  #         TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+  #         TYPEORM_DATABASE: $TYPEORM_DATABASE
+  #         TYPEORM_PORT: $TYPEORM_PORT
+  #         TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
+  #   steps:
+  #     - checkout
+  #     - add_ssh_keys:
+  #         fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
+  #     - attach_workspace: 
+  #         at: ~/
+  #     - restore_cache:
+  #         keys:
+  #           - build-backend
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           apk add --update ansible nodejs npm tar gzip
+  #     - run:
+  #         name: Deploy backend
+  #         command: |
+  #           cd backend
+  #           npm install
+  #           npm run build
+  #           cd ..
+  #           tar -C backend -czvf artifact.tar.gz .
+  #           cat ~/project/.circleci/ansible/inventory.txt
+  #           export ANSIBLE_HOST_KEY_CHECKING=False
+  #           ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+  #    # - destroy-environment:
+  #    #    workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
-        environment:
-          NODE_ENV: "production"
-          VERSION: "1"
-          ENVIRONMENT: "production"
-          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
-          TYPEORM_HOST: $TYPEORM_HOST
-          TYPEORM_USERNAME: $TYPEORM_USERNAME
-          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
-          TYPEORM_DATABASE: $TYPEORM_DATABASE
-          TYPEORM_PORT: $TYPEORM_PORT
-          TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
+      - image: python:3.9.1-alpine3.12
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
-      - attach_workspace: 
-          at: ~/
+          fingerprints:
+            - "30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"
       - restore_cache:
-          keys:
-            - build-backend
+          keys: [build-backend]
+      - attach_workspace:
+          at: /tmp/artifacts
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible nodejs npm openssh-client tar gzip
+            apk update
+            apk add --update ansible aws-cli openssh-client tar
+      - run:
+          name: compress backend
+          command: |
+            tar -C /tmp/artifacts/backend -czvf artifact.tar.gz .
       - run:
           name: Deploy backend
           command: |
-            cd backend
-            npm install
-            npm run build
-            cd ..
-            tar -C backend -czvf artifact.tar.gz .
-            cat ~/project/.circleci/ansible/inventory.txt
+            cd .circleci/ansible
             export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-     # - destroy-environment:
-     #    workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+            ansible-playbook -i /tmp/artifacts/inventory.txt deploy-backend.yml
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"
   # deploy-backend:
   #   docker:
   #     - image: python:3.9-alpine3.16

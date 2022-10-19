@@ -155,83 +155,148 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
 
+  # deploy-infrastructure:
+  #   docker:
+  #     - image: cimg/base:2021.04
+  #   steps:
+  #     - checkout
+  #     - dependencies
+  #     # Checkout code from git
+  #     - run:
+  #         name: Ensure back-end infrastructure exists
+  #         command: |
+  #           aws --region us-east-1 cloudformation deploy \
+  #           --template-file .circleci/files/backend.yml \
+  #           --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+  #           --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} \
+  #           --tags project=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+  #     - run:
+  #         name: Ensure front-end infrastructure exist
+  #         command: |
+  #           aws --region us-east-1 cloudformation deploy \
+  #           --template-file .circleci/files/frontend.yml \
+  #           --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+  #           --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} \
+  #           --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+  #     - run:
+  #         name: Add back-end ip to ansible inventory
+  #         command: |
+  #           aws cloudformation describe-stacks \
+  #           --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+  #           --query "Stacks[0].Outputs[0].OutputValue" \
+  #           --output text >> .circleci/ansible/inventory.txt
+  #           cat ~/project/.circleci/ansible/inventory.txt
+
+  #     - persist_to_workspace:
+  #         root: ~/
+  #         paths:
+  #           - project/.circleci/ansible/inventory.txt
+  #     - destroy-environment:
+  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
+
+  # configure-infrastructure:
+  #   docker:
+  #     - image: python:3.7-alpine3.11
+  #       environment:
+  #         NODE_ENV: "production"
+  #         VERSION: "1"
+  #         ENVIRONMENT: "production"
+  #         TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+  #         TYPEORM_HOST: $TYPEORM_HOST
+  #         TYPEORM_USERNAME: $TYPEORM_USERNAME
+  #         TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+  #         TYPEORM_DATABASE: $TYPEORM_DATABASE
+  #         TYPEORM_PORT: $TYPEORM_PORT
+  #         TYPEORM_ENTITIES: $TYPEORM_ENTITIES
+  #   steps:
+  #     - checkout
+  #     # Add ssh keys with fingerprint
+  #     - add_ssh_keys:
+  #         fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
+  #     - attach_workspace:
+  #         at: ~/
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           apk add curl
+  #           apk add --upgrade bash
+  #           apk add --update ansible
+  #           apk add openssh-client
+  #           pip3 install awscli
+  #     - run:
+  #         name: Configure server
+  #         command: |
+  #           cat ~/project/.circleci/ansible/inventory.txt
+  #           export ANSIBLE_HOST_KEY_CHECKING=False
+  #           ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml    
+  #     # - destroy-environment:
+  #     #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
+
   deploy-infrastructure:
     docker:
-      - image: cimg/base:2021.04
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - dependencies
-      # Checkout code from git
       - run:
           name: Ensure back-end infrastructure exists
           command: |
-            aws --region us-east-1 cloudformation deploy \
-            --template-file .circleci/files/backend.yml \
-            --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-            --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} \
-            --tags project=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udapeople-backend \
+              --stack-name backend-"${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"
+            export BACKEND_URL=$(aws cloudformation describe-stacks \
+              --stack-name backend-"${CIRCLE_WORKFLOW_ID}" \
+              --query "Stacks[0].Outputs[?OutputKey=='BackendURL'].OutputValue" \
+              --no-paginate --output text)
+            echo $BACKEND_URL
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" \
+              --request PUT --data "${BACKEND_URL}" \
+              https://api.memstash.io/values/backendurl
       - run:
           name: Ensure front-end infrastructure exist
           command: |
-            aws --region us-east-1 cloudformation deploy \
-            --template-file .circleci/files/frontend.yml \
-            --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
-            --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} \
-            --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople-frontend \
+              --stack-name frontend-"${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws cloudformation describe-stacks \
-            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query "Stacks[0].Outputs[0].OutputValue" \
-            --output text >> .circleci/ansible/inventory.txt
-            cat ~/project/.circleci/ansible/inventory.txt
-
+            export BACKEND_URL=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" \
+              --request GET https://api.memstash.io/values/backendurl)
+            echo "${BACKEND_URL}" >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
+      - run: yum -y install tar gzip
       - persist_to_workspace:
-          root: ~/
+          root: .circleci/ansible
           paths:
-            - project/.circleci/ansible/inventory.txt
+            - inventory.txt
+      # This command has a when: on_fail
       - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
-        environment:
-          NODE_ENV: "production"
-          VERSION: "1"
-          ENVIRONMENT: "production"
-          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
-          TYPEORM_HOST: $TYPEORM_HOST
-          TYPEORM_USERNAME: $TYPEORM_USERNAME
-          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
-          TYPEORM_DATABASE: $TYPEORM_DATABASE
-          TYPEORM_PORT: $TYPEORM_PORT
-          TYPEORM_ENTITIES: $TYPEORM_ENTITIES
+      - image: python:3.9.1-alpine3.12
     steps:
       - checkout
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"]
+          fingerprints:
+            - "30:44:e2:d6:e8:8c:c5:62:d5:4d:e1:e1:a4:78:d4:38"
       - attach_workspace:
-          at: ~/
+          at: /tmp/.circleci/ansible
       - run:
           name: Install dependencies
           command: |
-            apk add curl
-            apk add --upgrade bash
-            apk add --update ansible
-            apk add openssh-client
-            pip3 install awscli
+            apk add --update ansible aws-cli
       - run:
           name: Configure server
           command: |
-            cat ~/project/.circleci/ansible/inventory.txt
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml    
-      # - destroy-environment:
-      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
-
+            ansible-playbook -i /tmp/.circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"
 
 
   run-migrations:

@@ -4,9 +4,6 @@
   copy:
     src: ~/project/artifact.tar.gz
     dest: /home/ubuntu/artifact.tar.gz
-    owner: root
-    group: root
-    mode: '777'
 
 - name: prepare binaries
   become: true

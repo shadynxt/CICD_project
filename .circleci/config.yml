@@ -265,10 +265,10 @@ jobs:
                 -H "X-Api-Key: ${THISDB_API_KEY}" \
                 -d "0"
             fi
-  #     - destroy-environment:
-  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-  #     - destroy-environment:
-  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+     - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
   deploy-frontend:
     docker:
@@ -345,7 +345,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.9-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
@@ -379,10 +379,16 @@ jobs:
       - run:
           name: Install AWS CLI for rollback
           when: on_fail
-          command: |
+          command:
             apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
-      # - revert-migrations
-      # - destroy-environment
+      
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 #   smoke-test-backend:
 #     docker:

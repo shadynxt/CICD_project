@@ -575,10 +575,14 @@ jobs:
       - run:
           name: Backend smoke test
           command: |
-             BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
+             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
              API_URL="http://${BACKEND_IP}:3030"
-             curl "${API_URL}/api/status"
-
+             if curl -s "${API_URL}/api/status" | grep "ok"
+             then
+              exit 0
+            else
+              exit 1
+            fi 
   smoke-test-frontend:
     docker:
       - image: python:3.7-alpine3.11

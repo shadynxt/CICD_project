@@ -580,9 +580,9 @@ jobs:
              if curl -s "${API_URL}/api/status" | grep "ok"
              then
               exit 0
-            else
+             else
               exit 1
-            fi 
+             fi 
   smoke-test-frontend:
     docker:
       - image: python:3.7-alpine3.11

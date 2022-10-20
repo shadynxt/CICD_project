@@ -527,52 +527,52 @@ jobs:
   #         command:
   #           apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
 
-#   smoke-test-backend:
-#     docker:
-#       - image: python:3.7-alpine3.11
-#     steps:
-#       - checkout
-#       - attach_workspace:
-#           at: ~/
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             apk add --update curl
-#             pip install awscli
-#       - run:
-#           name: Backend smoke test
-#           command: |
-#              BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-#              API_URL="http://${BACKEND_IP}:3030"
-#              curl "${API_URL}/api/status"
+  smoke-test-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl
+            pip install awscli
+      - run:
+          name: Backend smoke test
+          command: |
+             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+             API_URL="http://${BACKEND_IP}:3030"
+             curl "${API_URL}/api/status"
 
-#   smoke-test-frontend:
-#     docker:
-#       - image: python:3.7-alpine3.11
-#     steps:
-#       - checkout
-#       - attach_workspace:
-#           at: ~/
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             apk add --update curl
-#             pip install awscli
-#       - run:
-#           name: Smoke test for front end
-#           command: |
-#             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
-#             echo ${URL} 
-#             if curl -s ${URL} | grep "Welcome"
-#             then
-#               exit 0
-#             else
-#               exit 1
-#             fi           
-#       # - destroy-environment:
-#       #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-#       # - revert-migrations:
-#       #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}' 
+  smoke-test-frontend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl
+            pip install awscli
+      - run:
+          name: Smoke test for front end
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com"             
+            echo ${URL} 
+            if curl -s ${URL} | grep "Welcome"
+            then
+              exit 1
+            else
+              exit 2
+            fi           
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}' 
  
 #   cloudfront-update:
 #     docker:
@@ -647,10 +647,10 @@ workflows:
            requires: [run-migrations]
        - deploy-backend:
            requires: [run-migrations]
-      #  - smoke-test-backend:
-      #      requires: [deploy-backend]
-      #  - smoke-test-frontend:
-      #      requires: [deploy-frontend]
+       - smoke-test-backend:
+           requires: [deploy-backend]
+       - smoke-test-frontend:
+           requires: [deploy-frontend]
       
       #  - cloudfront-update:
       #      requires: [smoke-test-backend,smoke-test-frontend]

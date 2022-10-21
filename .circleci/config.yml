@@ -517,6 +517,13 @@ jobs:
           name: Deploy backend
           command: |
             cd .circleci/ansible
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+            export TYPEORM_HOST=postgres.cexa18yoahsu.us-east-1.rds.amazonaws.com
+            export TYPEORM_USERNAME=postgres
+            export TYPEORM_PASSWORD=password
+            export TYPEORM_DATABASE=glee2
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i /tmp/artifacts/inventory.txt deploy-backend.yml
       - destroy-environment:

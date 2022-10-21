@@ -38,6 +38,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
+        - Key: Project
+          Value: Udapeople
 Outputs:
   InstanceIP:
     Description: EC2 instance public IP

@@ -640,26 +640,26 @@ jobs:
       - revert-migrations:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
-#    # cleanup:
-#    #   docker:
-#    #     - image: amazon/aws-cli
-#    #   steps:
-#    #     - checkout
-#    #     - run:
-#    #         name: Remove old stacks and files
-#    #         command: |
-#    #           if [[ 6f4e40c == "" ]]
-#    #           then
-#    #           echo "No workflow id found"
-#    #           else
-#    #           if [[ "683c244" != "6f4e40c" ]]
-#    #           then
-#    #             echo "$OldWorkflowID!=$CurrentWorkflowID => will delete old version"
-#    #             aws s3 rm "s3://udapeople-6f4e40c" --recursive
-#    #             aws cloudformation delete-stack --stack-name "udapeople-frontend-6f4e40c"
-#    #             aws cloudformation delete-stack --stack-name "udapeople-backend-6f4e40c"
-#    #           fi
-#    #           fi
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Remove old stacks and files
+          command: |
+            if [[ 6f4e40c == "" ]]
+            then
+            echo "No workflow id found"
+            else
+            if [[ "683c244" != "6f4e40c" ]]
+            then
+              echo "$OldWorkflowID!=$CurrentWorkflowID => will delete old version"
+              aws s3 rm "s3://udapeople-6f4e40c" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-6f4e40c"
+              aws cloudformation delete-stack --stack-name "udapeople-backend-6f4e40c"
+            fi
+            fi
 
 workflows:
   default:
@@ -693,5 +693,5 @@ workflows:
            requires: [smoke-test-backend,smoke-test-frontend]
       # #- cleanup
       # #     requires: [smoke-test-backend,smoke-test-frontend]
-      # # - cleanup:
-      # #     requires: [cloudfront-update]
+       - cleanup:
+           requires: [cloudfront-update]

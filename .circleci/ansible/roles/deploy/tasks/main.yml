@@ -17,7 +17,7 @@
     pm2 start npm --name backend -- start
 - name: "Executing Node app with PM2"
   shell: |
-    cd ~/dist
+    cd /home/ubuntu/dist
     pm2 stop backend
     export TYPEORM_MIGRATIONS_DIR=./migrations
     export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}

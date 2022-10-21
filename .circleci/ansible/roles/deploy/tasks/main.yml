@@ -15,38 +15,39 @@
   shell: |
     cd /home/ubuntu
     pm2 start npm --name backend -- start
-- name: Echo my_env_var
-  shell: "echo $TYPEORM_MIGRATIONS_DIR"
-  environment:
-    TYPEORM_MIGRATIONS_DIR: ./migrations
 
 - name: Echo my_env_var again
-  shell: "echo $TYPEORM_ENTITIES"
+  shell: export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
   environment:
     TYPEORM_ENTITIES: ./modules/domain/**/*.entity{.ts,.js}
 
 - name: Echo my_env_var
-  shell: "echo $TYPEORM_MIGRATIONS"
+  shell: export TYPEORM_MIGRATIONS_DIR=./migrations
+  environment:
+    TYPEORM_MIGRATIONS_DIR: ./migrations    
+
+- name: Echo my_env_var
+  shell: export TYPEORM_MIGRATIONS=./migrations/*.ts
   environment:
     TYPEORM_MIGRATIONS: ./migrations/*.ts
 
 - name: Echo my_env_var
-  shell: "echo $TYPEORM_HOST"
+  shell: export TYPEORM_HOST=postgres.cexa18yoahsu.us-east-1.rds.amazonaws.com
   environment:
     TYPEORM_HOST: postgres.cexa18yoahsu.us-east-1.rds.amazonaws.com
 
 - name: Echo my_env_var
-  shell: "echo $TYPEORM_USERNAME"
+  shell: export TYPEORM_USERNAME=postgres
   environment:
     TYPEORM_USERNAME: postgres     
 
 - name: Echo my_env_var
-  shell: "echo $TYPEORM_PASSWORD"
+  shell: export TYPEORM_PASSWORD=password
   environment:
     TYPEORM_PASSWORD: password
 
 - name: Echo my_env_var
-  shell: "echo $TYPEORM_DATABASE"
+  shell: export TYPEORM_DATABASE=glee2
   environment:
     TYPEORM_DATABASE: glee2
 

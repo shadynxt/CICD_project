@@ -15,6 +15,41 @@
   shell: |
     cd /home/ubuntu
     pm2 start npm --name backend -- start
+- name: Echo my_env_var
+  shell: "echo $TYPEORM_MIGRATIONS_DIR"
+  environment:
+    TYPEORM_MIGRATIONS_DIR: ./migrations
+
+- name: Echo my_env_var again
+  shell: "echo $TYPEORM_ENTITIES"
+  environment:
+    TYPEORM_ENTITIES: ./modules/domain/**/*.entity{.ts,.js}
+
+- name: Echo my_env_var
+  shell: "echo $TYPEORM_MIGRATIONS"
+  environment:
+    TYPEORM_MIGRATIONS: ./migrations/*.ts
+
+- name: Echo my_env_var
+  shell: "echo $TYPEORM_HOST"
+  environment:
+    TYPEORM_HOST: postgres.cexa18yoahsu.us-east-1.rds.amazonaws.com
+
+- name: Echo my_env_var
+  shell: "echo $TYPEORM_USERNAME"
+  environment:
+    TYPEORM_USERNAME: postgres     
+
+- name: Echo my_env_var
+  shell: "echo $TYPEORM_PASSWORD"
+  environment:
+    TYPEORM_PASSWORD: password
+
+- name: Echo my_env_var
+  shell: "echo $TYPEORM_DATABASE"
+  environment:
+    TYPEORM_DATABASE: glee2
+
 - name: "Executing Node app with PM2"
   become: true
   shell: |

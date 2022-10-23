@@ -113,10 +113,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: build-backend
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-          
+
   test-backend:
     docker:
       - image: cimg/node:13.8.0

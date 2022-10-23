@@ -1,7 +1,14 @@
 Public Url to GitHub repository (not private) [URL01]
-
+https://github.com/shadynxt/CICD_project
 
 Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]
 
 
 Evidence of deployed and functioning Frontend in CloudFront. [URL03]
+http://d1bcld197avat7.cloudfront.net	
+
+Backend server
+http://54.166.77.165:3030/api/status
+
+Prometheus server
+http://50.17.109.150:9090

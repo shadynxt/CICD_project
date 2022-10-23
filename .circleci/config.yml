@@ -83,8 +83,8 @@ jobs:
           command: |
             npm i
             npm run build
-            # cp .env dist/.env
-            # pwd && ls -al
+            cp .env dist/.env
+            pwd && ls -al
       - persist_to_workspace:
           root: ~/
           paths:
